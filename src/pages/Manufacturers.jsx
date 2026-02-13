@@ -7,7 +7,7 @@ const Manufacturers = ({ showMessage }) => {
     window.location.href = '/login';
   }
 
-  const API_BASE_URL = 'http://localhost:5050/api';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
   const [manufacturers, setManufacturers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -50,7 +50,7 @@ const Manufacturers = ({ showMessage }) => {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Manufacturers Management</h1>
-      
+
       {/* Add Manufacturer Button */}
       <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Manufacturers</h2>

@@ -16,7 +16,7 @@ import HomePage from './pages/HomePage';
 import MessageDisplay from './componets/MessageDisplay';
 import SignUp from './pages/SignUp';
 
-const API_BASE_URL = 'http://localhost:5050/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
 
 const AlertsPage = ({ showMessage }) => {
   const [alerts, setAlerts] = useState([]);
@@ -64,7 +64,7 @@ const AlertsPage = ({ showMessage }) => {
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Alerts</h1>
-        <button 
+        <button
           onClick={checkForAlerts}
           disabled={loading}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -271,7 +271,7 @@ const UsersPage = ({ showMessage }) => {
                 <p className="text-gray-600">Manage system users and their permissions</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={openCreateModal}
               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
             >
@@ -336,7 +336,7 @@ const UsersPage = ({ showMessage }) => {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No Users Found</h3>
             <p className="text-gray-600 mb-6">Get started by creating your first user account.</p>
-            <button 
+            <button
               onClick={openCreateModal}
               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
             >
@@ -399,7 +399,7 @@ const UsersPage = ({ showMessage }) => {
                       </td>
                       <td className="px-6 py-6">
                         <div className="flex items-center space-x-3">
-                          <button 
+                          <button
                             onClick={() => handleEdit(user)}
                             className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200"
                           >
@@ -408,7 +408,7 @@ const UsersPage = ({ showMessage }) => {
                             </svg>
                             Edit
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDelete(user.id)}
                             className="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200"
                           >
@@ -450,7 +450,7 @@ const UsersPage = ({ showMessage }) => {
                       <input
                         type="text"
                         value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12"
                         placeholder="Enter full name"
                         required
@@ -460,14 +460,14 @@ const UsersPage = ({ showMessage }) => {
                       </svg>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
                     <div className="relative">
                       <input
                         type="email"
                         value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12"
                         placeholder="Enter email address"
                         required
@@ -485,7 +485,7 @@ const UsersPage = ({ showMessage }) => {
                         <input
                           type="password"
                           value={formData.password}
-                          onChange={(e) => setFormData({...formData, password: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12"
                           placeholder="Enter password"
                           required
@@ -502,7 +502,7 @@ const UsersPage = ({ showMessage }) => {
                     <div className="relative">
                       <select
                         value={formData.role}
-                        onChange={(e) => setFormData({...formData, role: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12 appearance-none bg-white"
                       >
                         <option value="user">User</option>
@@ -552,7 +552,7 @@ const TopNavbar = ({ onLogout, onToggleSidebar, isSidebarOpen }) => {
       try {
         const { data } = await axios.get(`${API_BASE_URL}/alerts/count`);
         if (mounted) setCount(data.count || 0);
-      } catch (e) {}
+      } catch (e) { }
     };
     fetchCount();
     const id = setInterval(fetchCount, 30000);
@@ -561,7 +561,7 @@ const TopNavbar = ({ onLogout, onToggleSidebar, isSidebarOpen }) => {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Mobile Hamburger Menu */}
           <button
@@ -576,7 +576,7 @@ const TopNavbar = ({ onLogout, onToggleSidebar, isSidebarOpen }) => {
               )}
             </svg>
           </button>
-          
+
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">S</span>
           </div>
@@ -584,8 +584,8 @@ const TopNavbar = ({ onLogout, onToggleSidebar, isSidebarOpen }) => {
           <span className="text-xs text-gray-500 hidden sm:block">Stock Inventory Management</span>
         </div>
         <div className="flex items-center gap-2">
-          <a 
-            href="/alerts" 
+          <a
+            href="/alerts"
             className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -598,8 +598,8 @@ const TopNavbar = ({ onLogout, onToggleSidebar, isSidebarOpen }) => {
               </span>
             )}
           </a>
-          <a 
-            href="/users" 
+          <a
+            href="/users"
             className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -647,7 +647,7 @@ const App = () => {
         <div className="flex min-h-screen">
           {user ? <NabBar isOpen={isSidebarOpen} /> : ""}
           <MessageDisplay message={message} />
-          <div className={user ? "flex-1 transition-all duration-300 ease-in-out pt-16" : "w-full flex flex-1 p-8 justify-center items-center min-h-screen bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800"}>
+          <div className={user ? "flex-1 transition-all duration-300 ease-in-out pt-12" : "w-full flex flex-1 p-8 justify-center items-center min-h-screen bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800"}>
             <Routes>
               <Route path="/sign-up" element={<SignUp />} />
               <Route path="/add-part" element={user ? <AddSparePartForm showMessage={showMessage} /> : <Navigate to='/login' />} />

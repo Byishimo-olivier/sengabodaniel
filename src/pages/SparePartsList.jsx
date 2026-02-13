@@ -5,26 +5,34 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // Import axios
 import { exportToCSV, printTable, exportSparePartsToCSV } from '../utils/exportUtils';
 // Component for adding a new Product
-const API_BASE_URL = 'http://localhost:5050/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
 // Component for displaying and managing Products
 const SparePartsList = ({ showMessage }) => {
-   if(!localStorage.getItem('user')){
-        window.location.href='/login';
-    }
+  if (!localStorage.getItem('user')) {
+    window.location.href = '/login';
+  }
   const [spareParts, setSpareParts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [manufacturers, setManufacturers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingPart, setEditingPart] = useState(null); // State to hold part being edited
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [partToDelete, setPartToDelete] = useState(null);
 
-  const fetchSpareParts = async () => {
+  const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/spare_parts`);
-      setSpareParts(response.data);
+      const [partsRes, catsRes, mansRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/spare_parts`),
+        axios.get(`${API_BASE_URL}/categories`),
+        axios.get(`${API_BASE_URL}/manufacturers`)
+      ]);
+      setSpareParts(partsRes.data);
+      setCategories(catsRes.data);
+      setManufacturers(mansRes.data);
     } catch (error) {
-      console.error('Error fetching items:', error);
-      showMessage('Failed to load items.', 'error');
+      console.error('Error fetching data:', error);
+      showMessage('Failed to load inventory data.', 'error');
     } finally {
       setLoading(false);
     }
@@ -32,7 +40,7 @@ const SparePartsList = ({ showMessage }) => {
 
   // Fetch data on component mount
   useEffect(() => {
-    fetchSpareParts();
+    fetchInitialData();
   }, []);
 
   // Handle Edit button click
@@ -54,7 +62,7 @@ const SparePartsList = ({ showMessage }) => {
     try {
       const response = await axios.delete(`${API_BASE_URL}/spare_parts/${partToDelete}`);
       showMessage(response.data.message, 'success');
-      fetchSpareParts(); // Refresh the list
+      fetchInitialData(); // Refresh the list
     } catch (error) {
       console.error('Error deleting item:', error);
       if (error.response) {
@@ -112,7 +120,7 @@ const SparePartsList = ({ showMessage }) => {
       setLoading(true);
       const { data } = await axios.post(`${API_BASE_URL}/alerts/check`);
       showMessage(`Alert check completed: ${data.alertsCreated} created, ${data.alertsUpdated} updated, ${data.alertsResolved} resolved`, 'success');
-      fetchSpareParts(); // Refresh the list
+      fetchInitialData(); // Refresh the list
     } catch (e) {
       showMessage('Failed to check for alerts', 'error');
     } finally {
@@ -138,8 +146,8 @@ const SparePartsList = ({ showMessage }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8 pt-20">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8 pt-6">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -150,13 +158,13 @@ const SparePartsList = ({ showMessage }) => {
                 </svg>
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">All Products</h1>
-                <p className="text-gray-600">Complete inventory overview and management</p>
+                <h1 className="text-2xl font-bold text-gray-900">All Products</h1>
+                <p className="text-sm text-gray-600">Complete inventory overview</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => window.location.href='/add-category'}
+                onClick={() => window.location.href = '/add-category'}
                 className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,7 +218,7 @@ const SparePartsList = ({ showMessage }) => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4">
             <div className="flex items-center">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-4">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,7 +231,7 @@ const SparePartsList = ({ showMessage }) => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4">
             <div className="flex items-center">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-4">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,7 +244,7 @@ const SparePartsList = ({ showMessage }) => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4">
             <div className="flex items-center">
               <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center mr-4">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -274,8 +282,8 @@ const SparePartsList = ({ showMessage }) => {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No Products Found</h3>
             <p className="text-gray-600 mb-6">Start building your inventory by adding your first product.</p>
-            <button 
-              onClick={() => window.location.href='/add-part'}
+            <button
+              onClick={() => window.location.href = '/add-part'}
               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -287,9 +295,9 @@ const SparePartsList = ({ showMessage }) => {
         ) : (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             {/* Table Header */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-6 border-b border-gray-200">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Product Inventory</h2>
-              <p className="text-sm text-gray-600 mt-1">Complete list of all products with pricing and stock information</p>
+              <p className="text-xs text-gray-600 mt-1">Complete list of all products</p>
             </div>
 
             {/* Table Content */}
@@ -312,10 +320,10 @@ const SparePartsList = ({ showMessage }) => {
                     const stockStatus = getStockStatus(part.Quantity, part.lowstock_threshold || 5);
                     const totalBuying = ((parseFloat(part.Quantity) || 0) * (parseFloat(part.buying_price) || 0));
                     const totalSelling = ((parseFloat(part.Quantity) || 0) * (parseFloat(part.selling_price) || 0));
-                    
+
                     return (
-                      <tr key={part.PartID} className="hover:bg-gray-50 transition-colors duration-200">
-                        <td className="px-6 py-6">
+                      <tr key={part._id || part.PartID || index} className="hover:bg-gray-50 transition-colors duration-200">
+                        <td className="px-6 py-4">
                           <div className="flex items-center">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center mr-3">
                               <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,17 +332,26 @@ const SparePartsList = ({ showMessage }) => {
                             </div>
                             <div>
                               <div className="text-sm font-semibold text-gray-900">{part.Name}</div>
-                              <div className="text-sm text-gray-500">ID: {part.PartID} | Threshold: {part.lowstock_threshold || 5}</div>
+                              <div className="text-sm text-gray-500">ID: {part.PartID || part._id} | Threshold: {part.lowstock_threshold || 5}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-6">
+                        <td className="px-6 py-4">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            {part.category_name || 'Uncategorized'}
+                            {part.category_name ||
+                              categories.find(c => (c._id === part.Category || c.id === part.Category || c.CategoryID === part.Category))?.name ||
+                              part.Category?.name ||
+                              'Uncategorized'}
                           </span>
                         </td>
                         <td className="px-6 py-6">
-                          <span className="text-sm text-gray-700">{part.manufacturer_name || 'N/A'}</span>
+                          <span className="text-sm text-gray-700">
+                            {part.manufacturer_name ||
+                              manufacturers.find(m => (m._id === part.manufacturer_id || m.id === part.manufacturer_id || m.ManufacturerID === part.manufacturer_id))?.name ||
+                              part.Manufacturer?.name ||
+                              part.manufacturer_id?.name ||
+                              'N/A'}
+                          </span>
                         </td>
                         <td className="px-6 py-6">
                           <div className="flex items-center">
@@ -344,7 +361,7 @@ const SparePartsList = ({ showMessage }) => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-6">
+                        <td className="px-6 py-4">
                           <span className="text-sm font-medium text-gray-900">
                             {part.buying_price ? `${parseFloat(part.buying_price).toLocaleString()} RWF` : 'N/A'}
                           </span>
@@ -376,7 +393,7 @@ const SparePartsList = ({ showMessage }) => {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDeleteClick(part.PartID)}
+                              onClick={() => handleDeleteClick(part.PartID || part._id)}
                               className="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors duration-200"
                             >
                               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -390,7 +407,7 @@ const SparePartsList = ({ showMessage }) => {
                     );
                   })}
                 </tbody>
-                
+
                 {/* Summary Footer */}
                 <tfoot className="bg-gradient-to-r from-gray-50 to-gray-100">
                   <tr>
@@ -420,7 +437,7 @@ const SparePartsList = ({ showMessage }) => {
             onClose={() => setEditingPart(null)}
             onUpdateSuccess={() => {
               setEditingPart(null);
-              fetchSpareParts(); // Refresh list after update
+              fetchInitialData(); // Refresh list after update
               showMessage('Product updated successfully!', 'success');
             }}
             showMessage={showMessage}

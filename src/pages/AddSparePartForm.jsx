@@ -1,15 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // Import axios
 // Component for adding a new Product
 const AddSparePartForm = ({ showMessage }) => {
-  if(!localStorage.getItem('user')){
-        window.location.href='/login';
-    }
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
+  if (!localStorage.getItem('user')) {
+    window.location.href = '/login';
+  }
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
   const [formData, setFormData] = useState({
     Name: '',
     Category: '',
-    Manufacturer: '',
+    manufacturer_id: '',
     Quantity: '',
     buying_price: '',
     selling_price: '',
@@ -62,17 +63,18 @@ const AddSparePartForm = ({ showMessage }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API_BASE_URL}/spare_parts`, {
+      const submissionData = {
         ...formData,
-        Category: formData.Category ? parseInt(formData.Category) : null,
-        Manufacturer: formData.Manufacturer ? parseInt(formData.Manufacturer) : null,
-        Quantity: parseInt(formData.Quantity),
+        Category: formData.Category || null, // Handle as string for MongoDB ObjectID
+        manufacturer_id: formData.manufacturer_id || null, // Handle as string for MongoDB ObjectID
+        Quantity: parseInt(formData.Quantity) || 0,
         buying_price: formData.buying_price ? parseFloat(formData.buying_price) : null,
         selling_price: formData.selling_price ? parseFloat(formData.selling_price) : null,
-        lowstock_threshold: parseInt(formData.lowstock_threshold)
-      });
+        lowstock_threshold: parseInt(formData.lowstock_threshold) || 5
+      };
+      const response = await axios.post(`${API_BASE_URL}/spare_parts`, submissionData);
       showMessage(response.data.message, 'success');
-      setFormData({ Name: '', Category: '', Manufacturer: '', Quantity: '', buying_price: '', selling_price: '', lowstock_threshold: '5' }); // Clear form
+      setFormData({ Name: '', Category: '', manufacturer_id: '', Quantity: '', buying_price: '', selling_price: '', lowstock_threshold: '5' }); // Clear form
     } catch (error) {
       console.error('Error:', error);
       if (error.response) {
@@ -84,7 +86,7 @@ const AddSparePartForm = ({ showMessage }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8 pt-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8 pt-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -95,8 +97,8 @@ const AddSparePartForm = ({ showMessage }) => {
               </svg>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Add New Product</h1>
-              <p className="text-gray-600">Create a new product entry in your inventory</p>
+              <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
+              <p className="text-sm text-gray-600">Create a new product entry</p>
             </div>
           </div>
         </div>
@@ -104,7 +106,7 @@ const AddSparePartForm = ({ showMessage }) => {
         {/* Form Container */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           {/* Form Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4">
             <h2 className="text-xl font-semibold text-white flex items-center">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -114,7 +116,7 @@ const AddSparePartForm = ({ showMessage }) => {
           </div>
 
           {/* Form Content */}
-          <form onSubmit={handleSubmit} className="p-8">
+          <form onSubmit={handleSubmit} className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Product Name */}
               <div className="lg:col-span-2">
@@ -151,16 +153,15 @@ const AddSparePartForm = ({ showMessage }) => {
                     </div>
                   ) : (
                     <select
-                      id="category"
                       name="Category"
-                      value={formData.Category}
+                      value={String(formData.Category ?? '')}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12 appearance-none bg-white"
                     >
-                      <option value="">Select a category</option>
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
+                      <option value="">Select category</option>
+                      {categories.map((cat, idx) => (
+                        <option key={cat._id || cat.id || cat.CategoryID || idx} value={String(cat._id || cat.id || cat.CategoryID || '')}>
+                          {cat.name ?? cat.CategoryName}
                         </option>
                       ))}
                     </select>
@@ -184,16 +185,15 @@ const AddSparePartForm = ({ showMessage }) => {
                     </div>
                   ) : (
                     <select
-                      id="manufacturer"
-                      name="Manufacturer"
-                      value={manufacturerId}
-                      onChange={e => setManufacturerId(e.target.value)}
+                      name="manufacturer_id"
+                      value={String(formData.manufacturer_id ?? '')}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12 appearance-none bg-white"
                     >
-                      <option value="">Select a manufacturer</option>
-                      {manufacturers.map((manufacturer) => (
-                        <option key={manufacturer.id} value={manufacturer.id}>
-                          {manufacturer.name}
+                      <option value="">Select manufacturer</option>
+                      {manufacturers.map((m, idx) => (
+                        <option key={m._id || m.id || m.ManufacturerID || idx} value={String(m._id || m.id || m.ManufacturerID || '')}>
+                          {m.name}
                         </option>
                       ))}
                     </select>
@@ -297,10 +297,10 @@ const AddSparePartForm = ({ showMessage }) => {
             </div>
 
             {/* Submit Button */}
-            <div className="mt-8 flex justify-end space-x-4">
+            <div className="mt-6 flex justify-end space-x-4">
               <button
                 type="button"
-                onClick={() => setFormData({ Name: '', Category: '', Manufacturer: '', Quantity: '', buying_price: '', selling_price: '', lowstock_threshold: '5' })}
+                onClick={() => setFormData({ Name: '', Category: '', manufacturer_id: '', Quantity: '', buying_price: '', selling_price: '', lowstock_threshold: '5' })}
                 className="px-6 py-3 border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200"
               >
                 Clear Form

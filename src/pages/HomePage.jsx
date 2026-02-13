@@ -3,90 +3,97 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // Import axios
 
 const HomePage = () => {
-    
- const API_BASE_URL = 'http://localhost:5050/api';
-if(!localStorage.getItem('user')){
-    window.location.href='/login';
-}
-const [stockOutRecords, setStockOutRecords] = useState([]);
-const [spareParts, setSpareParts] = useState([]);
-const [countersData, setCountersData] = useState([]);
-const [stockInRecords, setStockInRecords] = useState([]);
-const [loading, setLoading] = useState(true);
-const [lowStockItems, setLowStockItems] = useState([]);
-const [chartData, setChartData] = useState({
-  monthlyStockIn: [],
-  monthlyStockOut: [],
-  topProducts: []
-});
-const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'yearly'
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
+  if (!localStorage.getItem('user')) {
+    window.location.href = '/login';
+  }
+  const [stockOutRecords, setStockOutRecords] = useState([]);
+  const [spareParts, setSpareParts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [manufacturers, setManufacturers] = useState([]);
+  const [countersData, setCountersData] = useState([]);
+  const [stockInRecords, setStockInRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [lowStockItems, setLowStockItems] = useState([]);
+  const [chartData, setChartData] = useState({
+    monthlyStockIn: [],
+    monthlyStockOut: [],
+    topProducts: []
+  });
+  const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'yearly'
 
   const fetchStockOutRecords = async () => {
     setLoading(true);
     try {
-        const sparePartsResponse = await axios.get(`${API_BASE_URL}/spare_parts`);
-      const stockInRecordsResponse = await axios.get(`${API_BASE_URL}/stock_in`);
-      const stockOutRecordsResponse = await axios.get(`${API_BASE_URL}/stock_out`);
-      const lowStockResponse = await axios.get(`${API_BASE_URL}/low_stock`);
-    //   console.log();
-      setStockInRecords(stockInRecordsResponse.data);
-      setSpareParts(sparePartsResponse.data);
-      setStockOutRecords(stockOutRecordsResponse.data);
-      setLowStockItems(lowStockResponse.data || []);
+      const [partsRes, inRes, outRes, lowRes, catsRes, mansRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/spare_parts`),
+        axios.get(`${API_BASE_URL}/stock_in`),
+        axios.get(`${API_BASE_URL}/stock_out`),
+        axios.get(`${API_BASE_URL}/low_stock`),
+        axios.get(`${API_BASE_URL}/categories`),
+        axios.get(`${API_BASE_URL}/manufacturers`)
+      ]);
+      setStockInRecords(inRes.data);
+      setSpareParts(partsRes.data);
+      setStockOutRecords(outRes.data);
+      setLowStockItems(lowRes.data || []);
+      setCategories(catsRes.data);
+      setManufacturers(mansRes.data);
 
       // Process chart data
-      processChartData(stockInRecordsResponse.data, stockOutRecordsResponse.data, sparePartsResponse.data);
+      processChartData(inRes.data, outRes.data, partsRes.data);
 
-      setCountersData( [
-         {
-             id: 1,
-             title: 'Total Products',
-             value: `${sparePartsResponse.data.length}`,
-        icon: (
+      setCountersData([
+        {
+          id: 1,
+          title: 'Total Products',
+          value: `${partsRes.data.length}`,
+          icon: (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
-        ),
-        bgColor: 'from-blue-500 to-blue-700',
+          ),
+          bgColor: 'from-blue-500 to-blue-700',
         },
         {
-            id: 2,
-            title: 'Stock In Records',
-            value: `${stockInRecordsResponse.data.length}`,
-        icon: (
+          id: 2,
+          title: 'Stock In Records',
+          value: `${inRes.data.length}`,
+          icon: (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-        ),
-        bgColor: 'from-green-500 to-green-700',
+          ),
+          bgColor: 'from-green-500 to-green-700',
         },
         {
-            id: 3,
-            title: 'Stock Out Records',
-            value: `${stockOutRecordsResponse.data.length}`,
-            icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          id: 3,
+          title: 'Stock Out Records',
+          value: `${outRes.data.length}`,
+          icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-        ),
-        bgColor: 'from-red-500 to-red-700',
+          ),
+          bgColor: 'from-red-500 to-red-700',
         },
         {
-            id: 4,
-            title: 'Low Stock Alerts',
-            value: `${(lowStockResponse.data || []).length}`,
-            icon: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-            ),
-            bgColor: 'from-yellow-500 to-orange-600',
+          id: 4,
+          title: 'Low Stock Alerts',
+          value: `${(lowRes.data || []).length}`,
+          icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          ),
+          bgColor: 'from-yellow-500 to-orange-600',
         },
-    ]);
-      
+      ]);
+
     } catch (error) {
       console.error('Error fetching stock out records:', error);
-      showMessage('Failed to load stock out records.', 'error');
+      // showMessage('Failed to load stock out records.', 'error'); // Assuming showMessage is defined elsewhere
     } finally {
       setLoading(false);
     }
@@ -95,7 +102,7 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
   const processChartData = (stockInData, stockOutData, productsData) => {
     const currentDate = new Date();
     let periods = [];
-    
+
     if (timeFrame === 'daily') {
       // Last 7 days
       for (let i = 6; i >= 0; i--) {
@@ -137,9 +144,9 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
       const periodData = stockInData.filter(record => {
         const recordDate = new Date(record.StockInDate);
         if (timeFrame === 'daily') {
-          return recordDate.getFullYear() === period.year && 
-                 recordDate.getMonth() === period.month && 
-                 recordDate.getDate() === period.day;
+          return recordDate.getFullYear() === period.year &&
+            recordDate.getMonth() === period.month &&
+            recordDate.getDate() === period.day;
         } else if (timeFrame === 'monthly') {
           return recordDate.getFullYear() === period.year && recordDate.getMonth() === period.month;
         } else {
@@ -158,9 +165,9 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
       const periodData = stockOutData.filter(record => {
         const recordDate = new Date(record.StockOutDate);
         if (timeFrame === 'daily') {
-          return recordDate.getFullYear() === period.year && 
-                 recordDate.getMonth() === period.month && 
-                 recordDate.getDate() === period.day;
+          return recordDate.getFullYear() === period.year &&
+            recordDate.getMonth() === period.month &&
+            recordDate.getDate() === period.day;
         } else if (timeFrame === 'monthly') {
           return recordDate.getFullYear() === period.year && recordDate.getMonth() === period.month;
         } else {
@@ -182,7 +189,12 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
       .map(product => ({
         name: product.Name,
         quantity: product.Quantity || 0,
-        percentage: Math.min(100, ((product.Quantity || 0) / Math.max(...productsData.map(p => p.Quantity || 0))) * 100)
+        percentage: Math.min(100, ((product.Quantity || 0) / Math.max(...productsData.map(p => p.Quantity || 0))) * 100),
+        manufacturer_name: product.manufacturer_name,
+        manufacturer_id: product.manufacturer_id,
+        Manufacturer: product.Manufacturer,
+        category_name: product.category_name,
+        Category: product.Category
       }));
 
     setChartData({
@@ -237,8 +249,8 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8 pt-20">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8 pt-6">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-4">
@@ -248,8 +260,8 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
               </svg>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-              <p className="text-gray-600">Monitor your inventory and stock movements</p>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-sm text-gray-600">Monitor your inventory movements</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
@@ -293,8 +305,8 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
 
               {/* Content */}
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                     {counter.icon}
                   </div>
                   <div className="text-right">
@@ -346,7 +358,7 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
                   </div>
                 </div>
               </div>
-              
+
               {/* Line Chart Container */}
               <div className="relative h-80 bg-gray-50 rounded-lg p-4">
                 {/* Y-Axis */}
@@ -357,7 +369,7 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
                   <span>{Math.round(maxStockValue * 0.25)}</span>
                   <span>0</span>
                 </div>
-                
+
                 {/* Chart Area */}
                 <div className="ml-12 mr-4 h-full relative">
                   {/* Horizontal Grid Lines */}
@@ -366,7 +378,7 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
                       <div key={i} className="w-full border-t border-gray-200"></div>
                     ))}
                   </div>
-                  
+
                   {/* Chart Content */}
                   <div className="relative h-full">
                     <svg className="w-full h-full" viewBox="0 0 400 240" preserveAspectRatio="none">
@@ -381,7 +393,7 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
                           return `${x},${y}`;
                         }).join(' ')}
                       />
-                      
+
                       {/* Stock Out Line (Red) */}
                       <polyline
                         fill="none"
@@ -393,7 +405,7 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
                           return `${x},${y}`;
                         }).join(' ')}
                       />
-                      
+
                       {/* Data Points for Stock In */}
                       {chartData.monthlyStockIn.map((data, index) => {
                         const x = (index * 400) / (chartData.monthlyStockIn.length - 1);
@@ -412,7 +424,7 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
                           </circle>
                         );
                       })}
-                      
+
                       {/* Data Points for Stock Out */}
                       {chartData.monthlyStockOut.map((data, index) => {
                         const x = (index * 400) / (chartData.monthlyStockOut.length - 1);
@@ -434,14 +446,14 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
                     </svg>
                   </div>
                 </div>
-                
+
                 {/* X-Axis */}
                 <div className="ml-12 mr-4 mt-2 flex justify-between text-xs text-gray-500">
                   {chartData.monthlyStockIn.map((data) => (
                     <span key={data.period} className="font-medium">{data.period}</span>
                   ))}
                 </div>
-                
+
                 {/* Axis Labels */}
                 <div className="absolute left-2 top-1/2 transform -rotate-90 text-xs text-gray-500 font-medium">
                   Quantity
@@ -475,8 +487,15 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
                         <span className="text-sm font-medium text-gray-900 truncate">{product.name}</span>
                         <span className="text-sm text-gray-600">{product.quantity} units</span>
                       </div>
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                        Manufacturer: {product.manufacturer_name ||
+                          manufacturers.find(m => (m._id === product.manufacturer_id || m.id === product.manufacturer_id || m.ManufacturerID === product.manufacturer_id))?.name ||
+                          product.Manufacturer?.name ||
+                          product.manufacturer_id?.name ||
+                          'N/A'}
+                      </p>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-gradient-to-r from-purple-500 to-pink-600 h-2 rounded-full transition-all duration-500"
                           style={{ width: `${product.percentage}%` }}
                         ></div>
@@ -523,40 +542,50 @@ const [timeFrame, setTimeFrame] = useState('daily'); // 'daily', 'monthly' or 'y
                   <tbody className="divide-y divide-gray-100">
                     {lowStockItems.map((item) => (
                       <tr key={item.PartID} className="hover:bg-gray-50 transition-colors duration-200">
-                        <td className="py-4 px-6">
+                        <td className="py-3 px-6">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center mr-3">
-                              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center mr-3">
+                              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                               </svg>
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900">{item.Name}</div>
-                              <div className="text-sm text-gray-500">ID: {item.PartID}</div>
+                              <div className="font-medium text-gray-900 text-sm">{item.Name}</div>
+                              <div className="text-xs text-gray-500">ID: {item.PartID || item._id}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-6">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            item.Quantity === 0 
-                              ? 'bg-red-100 text-red-800' 
-                              : item.Quantity <= item.low_stock_threshold 
-                                ? 'bg-orange-100 text-orange-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                        <td className="py-3 px-6">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${item.Quantity === 0
+                            ? 'bg-red-100 text-red-800'
+                            : item.Quantity <= item.low_stock_threshold
+                              ? 'bg-orange-100 text-orange-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {item.Quantity} units
                           </span>
                         </td>
-                        <td className="py-4 px-6 text-gray-700">{item.category_name || '-'}</td>
-                        <td className="py-4 px-6 text-gray-700">{item.manufacturer_name || '-'}</td>
+                        <td className="py-3 px-6 text-gray-700 text-sm">
+                          {item.category_name ||
+                            categories.find(c => (c._id === item.Category || c.id === item.Category || c.CategoryID === item.Category))?.name ||
+                            item.Category?.name ||
+                            item.Category?.CategoryName ||
+                            '-'}
+                        </td>
+                        <td className="py-4 px-6 text-gray-700">
+                          {item.manufacturer_name ||
+                            manufacturers.find(m => (m._id === item.manufacturer_id || m.id === item.manufacturer_id || m.ManufacturerID === item.manufacturer_id))?.name ||
+                            item.Manufacturer?.name ||
+                            item.manufacturer_id?.name ||
+                            '-'}
+                        </td>
                         <td className="py-4 px-6">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                            item.Quantity === 0 
-                              ? 'bg-red-100 text-red-800' 
-                              : item.Quantity <= item.low_stock_threshold 
-                                ? 'bg-orange-100 text-orange-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${item.Quantity === 0
+                            ? 'bg-red-100 text-red-800'
+                            : item.Quantity <= item.low_stock_threshold
+                              ? 'bg-orange-100 text-orange-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {item.Quantity === 0 ? 'Out of Stock' : item.Quantity <= item.low_stock_threshold ? 'Critical' : 'Low Stock'}
                           </span>
                         </td>
