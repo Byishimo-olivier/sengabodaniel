@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
+
 const AddCategory = ({ showMessage }) => {
   const [categoryName, setCategoryName] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5050/api/categories', { name: categoryName });
+      const response = await axios.post(`${API_BASE_URL}/categories`, { name: categoryName });
       showMessage(response.data.message, 'success');
       setCategoryName('');
     } catch (error) {

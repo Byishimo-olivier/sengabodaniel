@@ -14,6 +14,7 @@ import Login from "./pages/login";
 import store from './store/Store';
 import HomePage from './pages/HomePage';
 import MessageDisplay from './componets/MessageDisplay';
+import SignUp from './pages/SignUp';
 
 const API_BASE_URL = 'http://localhost:5050/api';
 
@@ -366,8 +367,8 @@ const UsersPage = ({ showMessage }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 transition-colors duration-200">
+                  {users.map((user, idx) => (
+                    <tr key={user.id ?? user.email ?? idx} className="hover:bg-gray-50 transition-colors duration-200">
                       <td className="px-8 py-6">
                         <div className="flex items-center">
                           <div className={`w-12 h-12 bg-gradient-to-br ${getAvatarColor(user.name)} rounded-full flex items-center justify-center text-white font-semibold text-sm mr-4 shadow-lg`}>
@@ -648,6 +649,7 @@ const App = () => {
           <MessageDisplay message={message} />
           <div className={user ? "flex-1 transition-all duration-300 ease-in-out pt-16" : "w-full flex flex-1 p-8 justify-center items-center min-h-screen bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800"}>
             <Routes>
+              <Route path="/sign-up" element={<SignUp />} />
               <Route path="/add-part" element={user ? <AddSparePartForm showMessage={showMessage} /> : <Navigate to='/login' />} />
               <Route path="/stock-in" element={user ? <StockInForm showMessage={showMessage} /> : <Navigate to='/login' />} />
               <Route path="/stock-out" element={user ? <StockOutForm showMessage={showMessage} /> : <Navigate to='/login' />} />

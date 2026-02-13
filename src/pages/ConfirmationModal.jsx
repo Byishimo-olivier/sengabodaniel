@@ -6,7 +6,7 @@ const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
    if(!localStorage.getItem('user')){
         window.location.href='/login';
     }
-    const API_BASE_URL = 'http://localhost:5050/api';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
       <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm mx-auto text-center">

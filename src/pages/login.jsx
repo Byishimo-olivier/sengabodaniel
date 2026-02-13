@@ -1,19 +1,24 @@
 import axios from "axios";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import store from "../store/Store";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
+
 function Login(){
+    const navigate = useNavigate();
     async function signUp(){
-        var login=await axios.post('http://localhost:5050/api/login',{
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value
-        }).then(response=>{
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-            alert(response.data.message);
-            window.location.href='/';
-        }).catch(err=>{
-            alert(err.response.data.message);
+        try{
+            const resp = await axios.post(`${API_BASE_URL}/login`, {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            });
+            localStorage.setItem('user', JSON.stringify(resp.data.user));
+            alert(resp.data.message);
+            navigate('/');
+        }catch(err){
+            alert(err?.response?.data?.message || 'Login failed');
             console.log(err);
-        });
+        }
     }
     return(
         <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">

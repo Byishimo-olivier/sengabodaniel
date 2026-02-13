@@ -5,7 +5,7 @@ const AddSparePartForm = ({ showMessage }) => {
   if(!localStorage.getItem('user')){
         window.location.href='/login';
     }
-    const API_BASE_URL = 'http://localhost:5050/api';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
   const [formData, setFormData] = useState({
     Name: '',
     Category: '',
@@ -17,6 +17,7 @@ const AddSparePartForm = ({ showMessage }) => {
   });
   const [categories, setCategories] = useState([]);
   const [manufacturers, setManufacturers] = useState([]);
+  const [manufacturerId, setManufacturerId] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingManufacturers, setLoadingManufacturers] = useState(true);
 
@@ -185,8 +186,8 @@ const AddSparePartForm = ({ showMessage }) => {
                     <select
                       id="manufacturer"
                       name="Manufacturer"
-                      value={formData.Manufacturer}
-                      onChange={handleChange}
+                      value={manufacturerId}
+                      onChange={e => setManufacturerId(e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-12 appearance-none bg-white"
                     >
                       <option value="">Select a manufacturer</option>

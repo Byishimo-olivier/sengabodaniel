@@ -1,20 +1,26 @@
 import axios from "axios";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 // import store from "../store/Store";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050/api';
+
 function SignUp(){
+    const navigate = useNavigate();
     async function signUp(){
-        var login=await axios.post('http://localhost:5050/api/sign-up',{
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value,
-            name: document.getElementById('name').value
-        }).then(response=>{
-            alert(response.data.message);
-            window.location.href='/login';
-        }).catch(err=>{
-            alert('connection failed');
+        try{
+            const resp = await axios.post(`${API_BASE_URL}/sign-up`, {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                name: document.getElementById('name').value
+            });
+            alert(resp.data.message);
+            navigate('/login');
+        }catch(err){
+            alert(err?.response?.data?.message || 'Connection failed');
             console.log(err);
-        });
+        }
     }
+
     return(
         <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
             <div className="relative py-3 sm:max-w-xl sm:mx-auto">
